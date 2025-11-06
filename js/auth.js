@@ -1,15 +1,14 @@
 //const supabase = createClient(SUPABASE_URL, process.env.SUPABASE_KEY);
-
 const SUPABASE_URL = "https://hauarormiaflwagzdggm.supabase.co";
-const SUPABASE_KEY = "SUPABASE_CLIENT_API_KEY";
-const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhhdWFyb3JtaWFmbHdhZ3pkZ2dtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjIzMTkyMTgsImV4cCI6MjA3Nzg5NTIxOH0.uiWGoZlVsS2_MT_uyNPFW4BCBaiXHJ--y--D5v6-TNc";
+
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 supabase.auth.onAuthStateChange(async (event, session) => {
   if (session && window.location.pathname.includes("index.html")) {
     window.location.href = "quadras.html";
   }
 });
-
 
 // Alterna formulários
 function mostrarCadastro() {
@@ -34,7 +33,7 @@ async function cadastrar() {
 
   const { data, error } = await supabase.auth.signUp({
     email: email,
-    password: senha
+    password: senha,
   });
 
   if (error) {
@@ -50,29 +49,71 @@ async function cadastrar() {
   if (insertError) {
     alert("Erro ao salvar perfil: " + insertError.message);
   } else {
-    alert("Cadastro realizado com sucesso!");
+    alert("Cadastro realizado, bem vindo hooper!");
     mostrarLogin();
   }
 }
 
 // Função de login
+/** 
 async function login() {
   const email = document.getElementById("login-email").value;
   const senha = document.getElementById("login-senha").value;
 
   const { data, error } = await supabase.auth.signInWithPassword({
     email: email,
-    password: senha
+    password: senha,
   });
 
   if (error) {
     alert("Erro ao entrar: " + error.message);
   } else {
-    alert("Login realizado com sucesso!");
+    alert("Bem vindo de volta jogador!");
     // Redirecionar para próxima página (quadras)
     window.location.href = "quadras.html";
   }
 }
+*/
+async function login() {
+  const email = document.getElementById("login-email").value;
+  const senha = document.getElementById("login-senha").value;
+
+  // 1️⃣ Autentica no Supabase Auth
+  const { data: loginData, error: loginError } = await supabase.auth.signInWithPassword({
+    email,
+    password: senha,
+  });
+
+  if (loginError) {
+    alert("❌ Erro ao entrar: " + loginError.message);
+    return;
+  }
+
+  const user = loginData.user;
+  console.log("Usuário autenticado:", user);
+
+  // 2️⃣ Busca os dados do perfil na tabela 'usuarios'
+  const { data: perfil, error: perfilError } = await supabase
+    .from("usuarios")
+    .select("*")
+    .eq("email", email) // você pode usar também .eq("user_id", user.id)
+    .single();
+
+  if (perfilError) {
+    console.error("Erro ao buscar perfil:", perfilError.message);
+    alert("Erro ao carregar perfil. Contate o suporte.");
+    return;
+  }
+
+  console.log("Perfil encontrado:", perfil);
+
+  // 3️⃣ (Opcional) Armazena dados localmente
+  localStorage.setItem("usuario", JSON.stringify(perfil));
+
+  alert("✅ Login realizado com sucesso, " + perfil.apelido + "!");
+  window.location.href = "quadras.html";
+}
+
 // Login com Google
 async function loginComGoogle() {
   const { data, error } = await supabase.auth.signInWithOAuth({

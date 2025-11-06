@@ -1,9 +1,3 @@
-// js/google.js
-
-const SUPABASE_URL = "https://hauarormiaflwagzdggm.supabase.co";
-const SUPABASE_KEY = 'SUPABASE_CLIENT_API_KEY';
-const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
-
 async function loginComGoogle() {
   try {
     const { data, error } = await supabase.auth.signInWithOAuth({
